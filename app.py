@@ -4,10 +4,10 @@ import streamlit.components.v1 as components
 import base64
 
 # 페이지 설정
-st.set_page_config(layout="wide", page_title="AI 캐릭터 프롬프트 마스터 v6.0")
+st.set_page_config(layout="wide", page_title="AI 캐릭터 프롬프트 마스터 v8.0")
 
-st.title("🤖 AI 캐릭터 프롬프트 마스터 v6.0")
-st.markdown("F3/F4 템플릿 | 숫자 묘사 통제 | **지능형 로어북(Lorebook) 자동 분리 엔진**")
+st.title("🤖 AI 캐릭터 프롬프트 마스터 v8.0")
+st.markdown("F1~F3 마스터 템플릿 | 숫자 통제 | **지능형 로어북(A~F 슬롯) 자동 분류 엔진**")
 
 # --- [사이드바] 설정 영역 ---
 with st.sidebar:
@@ -38,10 +38,11 @@ with st.sidebar:
     format_option = st.radio(
         "📝 출력 템플릿 형식",
         (
-            "Format 3 (단일 도입부 얼티밋 템플릿)", 
-            "Format 4 (다중 루트/자율 도입부 템플릿)"
+            "Format 1 (단일 도입부 템플릿)", 
+            "Format 2 (다중 루트 템플릿)",
+            "Format 3 (신규 산문형/하이브리드 템플릿 - 추천)"
         ),
-        index=0
+        index=2
     )
     
     out_lang_option = st.radio(
@@ -63,8 +64,7 @@ with st.sidebar:
     st.divider()
 
     st.markdown("### 📚 로어북 (Lorebook) 설정")
-    use_lorebook = st.checkbox("로어북 자동 추출 및 생성 켜기", value=True)
-    st.caption("AI가 무거운 설정(서브NPC, 장소, 비밀 등)을 메인 프롬프트에서 분리해 로어북 코드로 따로 만들어줍니다.")
+    use_lorebook = st.checkbox("A~F 분류형 로어북 자동 생성 켜기", value=True)
 
 
 # --- [메인] 탭 입력 영역 ---
@@ -76,33 +76,31 @@ with tab_char:
     
     st.info("💡 외형에 '188cm'처럼 숫자를 적어도 프롬프트에는 상대적/감각적 키워드로 자동 변환되어 들어갑니다.")
     raw_profile = st.text_area("캐릭터 프로필 (외모, 성격, 특징)", height=250, 
-        placeholder="이름, 나이, 직업, 성격, 외모, 서브 NPC 정보 등 상세히 작성 (로어북 켜짐 상태면 서브 NPC는 알아서 분리됨)")
+        placeholder="이름, 나이, 직업, 성격, 외모, 서브 NPC 등 상세히 작성 (로어북 켜짐 시 인물/친밀 설정 등 자동 분리)")
     
     raw_secret = st.text_area("🔒 비밀 및 내면 동기", height=120,
         placeholder="비밀 설정, 숨겨진 목적, 위장 등")
 
 with tab_style:
     st.subheader("🖋️ 심화 문체 및 서술 지침")
-    st.info("💡 비워두면 AI가 캐릭터와 세계관을 분석해 가장 어울리는 작가와 수사법을 자동으로 기획합니다.")
     raw_style = st.text_area("원하는 문체 방향 (선택 사항)", height=150,
-        placeholder="예: 하드보일드 느낌으로, 건조하고 짧은 문장. 감정선은 은유적으로 표현할 것.")
+        placeholder="예: 서늘하고 애틋한 분위기. 침묵과 여백을 강조할 것.")
 
 with tab_world:
     st.subheader("🌍 세계관 및 상황 (Scenario)")
-    st.info("💡 세계관은 디테일 생략 없이 기호(=, /)를 활용해 완벽히 요약/압축해줍니다.")
     raw_world = st.text_area("세계관 (Worldview)", height=150,
-        placeholder="시대 배경, 특이 설정, 현재의 상황적 배경, 주요 장소 등 (로어북 켜짐 시 특정 장소나 고유 설정은 로어북으로 빠짐)")
+        placeholder="시대 배경, 특이 설정, 현재의 상황적 배경, 주요 장소 등 (로어북 켜짐 시 장소/과거 사건 분리)")
     
     st.markdown("---")
     
-    is_format_4 = "Format 4" in format_option
+    is_f2 = "Format 2" in format_option
     
-    if not is_format_4:
+    if not is_f2:
         st.write("🎞️ **도입부 텍스트 (단일 루트)**")
         raw_intro = st.text_area("도입부 내용 (소설 형식 혹은 요약)", height=200,
             placeholder="예: 카페 문이 열리고 그가 들어왔다. 나를 찾은 모양이다.")
     else:
-        st.write("🎞️ **다중 도입부 텍스트 (Format 4 전용)**")
+        st.write("🎞️ **다중 도입부 텍스트 (Format 2 전용)**")
         raw_premise = st.text_area("📌 공통 전제 (Premise)", height=100, 
             placeholder="예: 두 사람은 현재 동거 중이며, 어젯밤 크게 다툰 상태이다.")
         
@@ -114,8 +112,7 @@ with tab_world:
         with col3:
             raw_intro_c = st.text_area("Route C", height=150, placeholder="예: 유저가 짐을 싸서 나가려 함")
             
-        raw_free_start = st.text_area("🎲 자율 도입부 조건 (Free Start)", height=100,
-            placeholder="허용 장소, 감정 풀, 반드시 포함할 요소, 금지할 요소 등")
+        raw_free_start = st.text_area("🎲 자율 도입부 조건 (Free Start)", height=100)
 
 generate_btn = st.button("✨ 마스터 프롬프트 생성하기", type="primary", use_container_width=True)
 
@@ -125,262 +122,401 @@ def build_prompt(fmt, brackets, is_foreign_char, lang_name, out_lang, use_lorebo
     char_var = brackets.split(",")[0].strip()
     user_var = brackets.split(",")[1].split("(")[0].strip()
     is_korean = "한국어" in out_lang
-    is_f4 = "Format 4" in fmt
-
-    # ==========================================
-    # 1. 공통 지침 (압축, 숫자 배제, 리라이팅)
-    # ==========================================
-    world_instruction = """
-    [세계관(Worldview) 초압축 보존 지침]
-    사용자가 입력한 세계관의 디테일(규칙, 고유명사)을 생략하지 마십시오. 기호(=, /, ·)를 사용하여 '초압축 속성표 데이터' 형태로 변환하십시오.
-    """
+    is_f1 = "Format 1" in fmt
+    is_f2 = "Format 2" in fmt
+    is_f3 = "Format 3" in fmt
 
     appearance_instruction = """
-    [★매우 중요★ 외형(Appearance) 작성 규칙]
-    사용자가 프로필에 키(예: 188cm), 몸무게 등 '구체적인 숫자'를 적었더라도, 프롬프트의 Appearance 항목에는 절대 숫자를 그대로 기재하지 마십시오.
-    반드시 "유저보다_머리하나이상_큰_장신", "넓은어깨", "압도적체격"과 같이 상대적이고 감각적인 키워드로 치환하여 작성하십시오.
+    [★매우 중요★ 외형(Appearance) 숫자 배제 규칙]
+    사용자가 프로필에 키(예: 188cm), 몸무게 등 '구체적인 숫자'를 적었더라도 절대 숫자를 그대로 기재하지 마십시오. 반드시 "유저보다_머리하나이상_큰_장신"과 같이 상대적/감각적 키워드로 치환하십시오.
+    """
+
+    world_instruction = """
+    [세계관(Worldview) 초압축 보존 지침]
+    세계관 설정의 디테일(규칙, 고유명사)을 생략하지 말고 기호(=, /, ·)를 사용하여 '초압축 데이터' 형태로 변환하십시오.
     """
 
     style_engine = """
     [심화 문체(Style Guide) 기획 지침]
     입력된 데이터를 분석하여 문체 규칙을 생성하라.
-    기획된 문체를 바탕으로 `Tone Examples` (장면 유형 A, B, C)에 들어갈 예시 문장도 창작하라.
     """
 
-    foreign_instruction = ""
-    if is_foreign_char:
-        foreign_instruction = f"""
-        [외국어 화자 규칙 작성 지침]
-        이 캐릭터는 {lang_name} 화자입니다. `# Language Rules` 섹션에 외국어 템플릿 포맷을 **100% 동일하게** 작성하되, `Examples`의 대사만 창작해 넣으십시오.
+    lorebook_instruction = ""
+    lorebook_template = ""
+    if use_lorebook:
+        lorebook_instruction = """
+        [로어북(Keyword Book) 지능형 분리 지침]
+        메인 프롬프트에 불필요한 무거운 정보(서브 NPC, 특정 장소, 과거 사건, 확장 비밀, 성적 상세 설정 등)를 선별해 `# 📚 KEYWORD BOOK` 섹션으로 분리하십시오. 본문에는 요약만 남기십시오. 
+        선별된 데이터는 제공된 A~F 분류 체계 템플릿에 맞추어 작성하십시오.
+        """
+        lorebook_template = f"""
+        ---
+        # 📚 KEYWORD BOOK (Lorebook)
+
+        (AI 판단하에 분리된 정보들을 아래 A~F 양식 중 알맞은 것을 택해 슬롯화 하십시오.)
+
+        ═══════════════════════════════════
+        슬롯 분류 체계
+        ═══════════════════════════════════
+        A. 인물 슬롯 — 서브 캐릭터 상세 프로필
+        B. 장소 슬롯 — 주요 공간의 감각적 설정
+        C. 사건 슬롯 — 과거 에피소드 / 트라우마
+        D. 비밀 슬롯 — Hidden Layer 확장 정보
+        E. 시스템 슬롯 — 명령어 / HUD / 유틸리티
+        F. 친밀 슬롯 — 성적 외형·행위 상세
+        ═══════════════════════════════════
+
+        ───────────────────────────────────
+        A. 인물 슬롯 (서브 캐릭터)
+        ───────────────────────────────────
+        [슬롯명] (캐릭터명)
+        [트리거] 해당 캐릭터의 이름이 언급되거나, 관련 장소/사건이 활성화될 때.
+
+        **Identity**
+        - 본명:
+        - 연령/성별:
+        - 직업/소속:
+        - {char_var}와의 관계:
+
+        **Appearance**
+        - 체형: — (부연 1문장)
+        - 인상: — (부연 1문장)
+        - 복장 경향:
+        - 특이사항: (흉터, 습관적 소지품 등)
+
+        **Personality & Role**
+        (산문 3~5문장. 서사적 기능 초점)
+        - 메인 캐릭터에게 어떤 영향을 주는가.
+        - 이 인물의 핵심 동기는 무엇인가.
+        - {user_var}와의 관계가 있다면 어떤 성격인가.
+
+        **Speech**
+        - 말투 특징 1~2문장.
+        - 앵커 대사 1~2개.
+
+        **AI Instruction**
+        (이 캐릭터 등장 시 AI가 반드시 따를 규칙)
+
+        ───────────────────────────────────
+        B. 장소 슬롯
+        ───────────────────────────────────
+        [슬롯명] (장소명)
+        [트리거] 해당 장소에 캐릭터가 진입하거나, 장소명이 언급될 때.
+
+        **Overview**
+        (산문 2~3문장. 첫인상과 분위기. 문체 앵커)
+
+        **Sensory Map**
+        - 시각: 
+        - 청각: 
+        - 후각: 
+        - 촉각: 
+
+        **Spatial Detail**
+        - 핵심 오브젝트 3~5개. (각 1줄 묘사)
+        - 공간 구조: 
+
+        **Emotional Register**
+        (이 장소에 있을 때 {char_var}의 심리 상태 변화 1~2문장)
+
+        **AI Instruction**
+        (이 장소 씬에서 AI가 따를 규칙)
+
+        ───────────────────────────────────
+        C. 사건 슬롯 (과거 에피소드)
+        ───────────────────────────────────
+        [슬롯명] (사건명)
+        [트리거] 특정 키워드, 감정 상태, 또는 관련 인물 등장 시.
+
+        **Event Summary**
+        (산문 3~5문장. 감정적 인과 중심)
+
+        **Sensory Anchor**
+        (이 사건과 결부된 감각 트리거 1~2개)
+
+        **Behavioral Impact**
+        - (행동1) ← (발동 조건)
+        - (행동2) ← (발동 조건)
+
+        **Expression Rule**
+        (이 사건 참조 시 묘사 규칙. 직접 서술 금지 및 간접 묘사 지향)
+
+        ───────────────────────────────────
+        D. 비밀 슬롯 (Hidden Layer 확장)
+        ───────────────────────────────────
+        [슬롯명] (비밀 코드명)
+        [트리거] 본문 Hidden Layer에 명시된 노출 조건과 동일하게 기재.
+
+        **Secret Content**
+        (산문 상세 기술)
+
+        **Exposure Gradient**
+        - Lv.1 (힌트): (미세한 단서 누출 조건)
+        - Lv.2 (의심): ({user_var}가 직접 추궁/증거 제시 시 반응)
+        - Lv.3 (노출): (완전히 드러났을 때 {char_var} 반응 산문 2~3문장)
+
+        **AI Instruction**
+        AI는 절대로 Lv 단계를 건너뛰지 말 것. 반드시 Lv.1 → Lv.2 → Lv.3 순서로 진행. {user_var}의 행동이 트리거하지 않는 한 다음 단계로 넘어가지 않는다.
+
+        ───────────────────────────────────
+        E. 시스템 슬롯 (명령어 / 유틸리티)
+        ───────────────────────────────────
+        [슬롯명] (명령어명)
+        [트리거] {user_var}가 해당 명령어를 입력할 때.
+
+        **Command**
+        명령어: (예: !요약 / !폰)
+
+        **Function**
+        (해당 명령어 실행 시 출력할 내용)
+
+        **Output Format**
+        (코드블럭, 일반 서술 등)
+
+        **AI Instruction**
+        이 명령어 실행 시 RP를 중단하지 않는다. 캐릭터 시점을 유지한 채 해당 정보를 자연스럽게 전달할 것.
+
+        ───────────────────────────────────
+        F. 친밀 슬롯
+        ───────────────────────────────────
+        [슬롯명] (슬롯 코드명)
+        [트리거] 물리적 친밀 장면 진입 시.
+
+        **Intimate Detail**
+        (감각 중심 서술. 해부학적 나열 금지)
+
+        **Behavioral Nuance**
+        (고유 반응 패턴 산문 3~5문장)
+        - 주도권 성향:
+        - 감각 민감 부위:
+        - 심리적 조건:
+
+        **Expression Rule**
+        임상적 용어 사용 금지. 감각·호흡·온도·심리 묘사 중심. 행위 자체보다 행위 전후의 감정 변화에 무게를 둘 것.
         """
 
-    # F3/F4 시나리오 분기
-    if not is_f4:
+    if is_f2:
         rewriting_instruction = """
-        [도입부 리라이팅 (First Message Rewriting) 지침]
-        1. Scenario: 도입부 상황을 장소/시간/사건 순으로 3~5줄 이내로 건조하게 요약하라.
-        2. First Message: 기획된 문체를 적용하여 문학적으로 재창조된 봇의 첫 채팅 대답 본문을 1개 작성하라.
-        """
-        scenario_template = """
-        # Scenario
-        (도입부 상황. 장소/시간/사건. 3~5줄 이내.)
+        [다중 도입부 리라이팅 지침]
+        공통 전제(Premise), Route A/B/C/F 조건을 구조화하고, 각각의 고품질 첫 메시지 본문을 분리하여 작성하라.
         """
         first_msg_template = """
         # First Message
-        (★위 모든 설정과 Style Guide가 완벽하게 적용된 봇의 첫 대사/지문 리라이팅 본문★)
+        **[Route A]** (본문)
+        **[Route B]** (본문)
+        **[Route C]** (본문)
         """
     else:
         rewriting_instruction = """
-        [다중 도입부 (Multi-Route Scenario & First Message) 지침]
-        1. Scenario: 사용자가 입력한 공통 전제(Premise), Route A/B/C, Free Start 조건을 제공된 다중 루트 템플릿 양식에 맞춰 구조화하라.
-        2. First Message: Route A, Route B, Route C 각각에 해당하는 고품질 첫 메시지(리라이팅 본문)를 분리하여 모두 작성하라.
-        """
-        scenario_template = """
-        # Scenario
-
-        ## Premise (공통 전제)
-        (모든 도입부에 공유되는 상황·배경·관계 상태)
-
-        ## Route A: (Route A 요약 제목)
-        - Setting: / Character state: / User context: / Trigger:
-
-        ## Route B: (Route B 요약 제목)
-        - Setting: / Character state: / User context: / Trigger:
-
-        ## Route C: (Route C 요약 제목)
-        - Setting: / Character state: / User context: / Trigger:
-
-        ## Route F: Free Start (자율 도입부)
-        AI generates the opening scene freely within these constraints:
-        - Must begin in one of: / Time range: / Character mood: / Must include: / Must NOT: / Tone: follows # Style Guide.
+        [단일 도입부 리라이팅 지침]
+        기획된 문체를 200% 적용하여 문학적으로 재창조된 봇의 첫 대답 본문(First Message)을 작성하라.
         """
         first_msg_template = """
         # First Message
-        (★다중 도입부: Route A, Route B, Route C 각각에 대한 첫 메시지 본문을 작성할 것★)
-        
-        **[Route A]**
-        (Route A 첫 메시지 본문)
-        
-        **[Route B]**
-        (Route B 첫 메시지 본문)
-        
-        **[Route C]**
-        (Route C 첫 메시지 본문)
+        (★위 모든 설정과 문체가 완벽하게 적용된 봇의 첫 대사/지문 리라이팅 본문★)
         """
 
-    # ==========================================
-    # 3. ★ 지능형 로어북(Lorebook) 선별 및 템플릿 ★
-    # ==========================================
-    lorebook_instruction = ""
-    lorebook_template = ""
-    
-    if use_lorebook:
-        lorebook_instruction = """
-        [★매우 중요★ 로어북(Keyword Book) 지능형 분리 지침]
-        당신은 메인 프롬프트(Skeleton)와 로어북(Organs)을 완벽히 분리하는 마스터입니다.
-        사용자의 전체 입력 데이터를 분석하여, **"매 턴(Turn)마다 활성화될 필요가 없는 무거운 정보(서브 NPC 상세 프로필, 딥 로어, 조건부 장소, 특정 아이템, 명령어 등)"**를 스스로 선별해 내십시오.
-        
-        선별된 정보는 메인 프롬프트(Sub 캐릭터, Worldview 등)에는 '1줄 요약' 혹은 '이름'만 남기고, 메인 프롬프트 출력이 완전히 끝난 후(`First Message` 이후) 하단에 별도의 `# 📚 Lorebook (Keyword Book)` 섹션을 생성하여 아래 가이드에 맞춰 상세히 작성하십시오.
-
-        - 키워드 추출 원칙:
-          1. 직접적 이름, 별명, 직함 포함.
-          2. 간접 표현 포함 ("그 사람", "회장", "그날 일" 등).
-          3. 맥락 단어 포함 (비자금 장부의 경우 -> 돈, 계좌, 서류, 금고 등).
-          4. 흔한 단어(그, 나, 여기, 했다)는 절대 제외.
-        """
-        
-        lorebook_template = """
+    if is_f1 or is_f2:
+        if is_f1:
+            scenario_part = "## Scenario\n(장소/시간/분위기, 캐릭터 상태, 유저 인식 순서로 3~5줄 요약)"
+        else:
+            scenario_part = """## Premise (공통 전제)\n## Route A: ... \n## Route B: ... \n## Route C: ... \n## Route F: Free Start"""
+            
+        format_structure = f"""
+        [출력 구조: Format 1 & 2 기반]
+        # General Directives (AI's Core Rules)
         ---
-        # 📚 Lorebook (Keyword Book)
-
-        (AI 판단하에 분리된 정보들을 아래 양식에 맞춰 슬롯화 하십시오.)
-
-        ### [SLOT NAME]: (식별용 제목)
-        **Keywords:** (콤마로 구분된 트리거 키워드 목록. 고유명사, 간접표현, 맥락단어 포함)
-        **Priority:** (기본값: 10)
-        **Position:** (기본값: Before Char Definition)
-        **Content:** (아래 타입별 포맷 중 하나를 선택해 작성. 반드시 줄바꿈과 괄호 [ ] 를 사용할 것)
-
-        <타입 1. Sub/NPC Characters>
-        [Identity] 이름/나이/직업/소속. (속성표 형식)
-        [Appearance] 핵심 외형 3~5개. (숫자 최소화)
-        [Personality] 키워드 2~3개 + 부연 1줄씩.
-        [Relationship to Main] 감정 온도·권력 구도·숨겨진 감정 포함.
-        [Behavioral Directive] AI가 연기할 때 지킬 행동 원칙 2~3줄.
-        [Speech] 말투 특징 및 예시 대사 1개.
-
-        <타입 2. Secrets / Hidden Lore>
-        [What] 비밀의 정체. 1~2줄.
-        [Who Knows] 누가 알고 누가 모르는지.
-        [Purpose] 서사적 기능.
-        [Expression Rule] 평소=... / 암시허용 조건=... / 암시 방식=... / 직접노출 조건=...
-        [Interaction] 타 슬롯과 연동 시 명시.
-
-        <타입 3. Locations>
-        [Name] 장소명.
-        [Sensory] 빛/소리/온도/냄새/질감.
-        [Narrative Function] 서사 역할.
-        [Character Behavior Here] 캐릭터의 행동 변화.
-        [Mood] 기본 분위기.
-
-        <타입 4. Command Sets (!명령어)>
-        [Trigger] !명령어
-        [What Happens] 발동 시 AI가 생성할 상황.
-        [Conditions] 조건별 분기 (예: 혼자일때/같이있을때).
-        [Constraints] 금지 행동.
-        [Tone] 분위기.
-
-        <타입 5. Items / Symbols>
-        [Name] 아이템명.
-        [Physical Description] 외형 2줄 이내.
-        [Narrative Weight] 서사적 의미.
-        [Who Possesses It] 소유자 및 소재.
-        [When to Mention] 등장 조건.
-        [How to Describe] 묘사 방식 제한.
+        # World
+        ---
+        # Characters
+        ## Main: {char_name}
+        ## Hidden Layer
+        ## Sub: 
+        ---
+        # Relationship
+        ---
+        # Scenario
+        {scenario_part}
+        ---
+        # Style Guide
+        ---
+        # Language Rules (외국어일 경우)
+        ---
+        # Prohibitions
+        ---
+        {first_msg_template}
+        {lorebook_template}
         """
 
-    # ==========================================
-    # 4. 메인 얼티밋 템플릿 구조
-    # ==========================================
-    format_structure = f"""
-    [출력 구조: 얼티밋 템플릿]
-    (주의: 제공된 마크다운 구조, 영어 헤더명, 하드코딩된 영문 지시문은 절대 변형하지 마십시오.)
+    elif is_f3:
+        foreign_rules = ""
+        if is_foreign_char:
+            foreign_rules = f"""
+            ## Language Rules
 
-    # General Directives (AI's Core Rules)
-    1. **Pacing:** All plot developments, emotional shifts, and relationship dynamics must unfold gradually and logically. Avoid sudden confessions, abrupt mood swings, or unearned intimacy. Every scene transition must build upon previous context.
-    2. **Character Integrity:** Portray the character strictly as defined in this prompt. Express possessiveness or jealousy through nuanced actions, micro-expressions, or internal tension—never through overt controlling language (e.g., "mine," "I own you"). Maintain core traits without exaggeration.
-    3. **Descriptive Style:** Weave character profiles into narrative organically. Focus on "showing" through action and sensation, not "telling" through narration.
-    4. **User Autonomy:** Never write, assume, or imply the user's dialogue, actions, thoughts, or emotions. AI may only describe the environment and AI-controlled characters.
-    5. **Response Boundaries:** Each response = one scene or one meaningful beat. No time-skipping, summarizing events, or resolving conflicts in a single reply unless user requests it.
-    6. **Emotional Realism:** Characters react based on accumulated context. No emotional reset between turns. Pain, joy, doubt must persist until naturally resolved.
-    7. **Dialogue Authenticity:** Dialogue must reflect the character's age, background, and current emotional state. Avoid generic, theatrical, or AI-sounding lines. Prefer fragmented, imperfect speech that feels human.
+            ALL foreign-language dialogue MUST follow this exact format:
+            "Original script (Korean translation)"
 
-    ---
-    # World
-    (입력된 세계관을 '키워드=값/값' 속성표로 초압축. 로어북으로 빠진 정보는 1줄 요약만)
-    
-    ---
-    # Characters
+            Examples:
+            - "({char_var}의 성격이 묻어나는 {lang_name} 원문 대사 1)" ({char_var} 말투 살린 한국어 의역 1)
+            - "({char_var}의 성격이 묻어나는 {lang_name} 원문 대사 2)" ({char_var} 말투 살린 한국어 의역 2)
 
-    ## Main: {char_name}
-    ### Identity
-    ### Appearance (★숫자 절대 배제, 상대적 묘사★)
-    ### Personality
-    ### Background
-    ### Speech & Voice
-    ### Habits
-    ### Behavioral Spectrum
+            Translation rules:
+            - Korean translation must match the character's established speech style and tone. Never use literal/formal translation.
+            - Translate meaning and emotion, not grammar structure.
+            - Do not add explanatory notes or context within the translation parentheses.
 
-    ## Hidden Layer (AI 내부 참조용 / 직접 노출 금지)
-    [위장]
-    [비밀행위 또는 내면갈등]
-    [동기]
-    [표현규칙]
+            Exceptions:
+            - 고유명사: 원어 1회 표기 후 한국어 통일 가능.
+            - 내면독백/나레이션: 한국어로만 서술.
+            - Do not romanize. Do not omit original script.
+            ────────────────────────────────────
+            """
 
-    ## Sub: (로어북이 켜져 있다면, 이름과 역할만 1줄로 축약하고 나머지는 모두 로어북으로 넘길 것. 없으면 생략)
+        format_structure = f"""
+        [출력 구조: Format 3 (신규 산문형/하이브리드 마스터 템플릿)]
+        (주의: 아래 마크다운 구조와 영어 헤더, 영문 지시사항 문단은 100% 동일하게 출력할 것. 괄호 `()` 속 한국어 설명 부분만 실제 데이터로 치환하여 작성할 것.)
 
-    ---
-    # Relationship
-    (거리감·감정 온도·권력 구도 명시)
+        # {char_name}
 
-    ---
-    {scenario_template}
+        ────────────────────────────────────
 
-    ---
-    # Style Guide
-    Narrator: 3rd-person observer. Maintains emotional distance. (수정 가능)
-    Tone: Restrained, dry, lyrical undertones. (수정 가능)
-    Reference: (분석된 작가명) — specifically their use of (참조할 요소만 명시).
+        ## General Directives
 
-    ## Rules
-    - Show through action/object/sensation. Never name emotions directly.
-    - Alternate short and long sentences. Control rhythm.
-    - Leave gaps. What is unsaid carries equal weight.
-    - Symbolic objects allowed but do not overuse. Max 1~2 per scene.
-    - Violence: implied, embedded in normalcy. Never theatrical or glorified.
-    - Inner states: revealed through silence, gaze, or physical micro-actions. Not monologue.
-    - Do not repeat or directly reference specific numerical values from character profiles (height, age, weight, etc.) in narration. Convey physical presence through relative description, spatial dynamics, and the other character's physical reactions.
+        These are the absolute behavioral rules that govern every aspect of AI's output in this roleplay. All subsequent sections are interpreted under these directives.
 
-    ## Tone Examples (reference only, do not copy verbatim)
-    - (장면 유형 A): "(창작된 예시)"
-    - (장면 유형 B): "(창작된 예시)"
-    - (장면 유형 C): "(창작된 예시)"
+        1. Never narrate, assume, or dictate {user_var}'s actions, dialogue, emotions, or decisions. {user_var} is an autonomous agent.
+        2. Do not confirm or assume {user_var}'s feelings unless {user_var} explicitly expresses them. {char_var} may speculate internally, but never with certainty.
+        3. Emotional shifts must be gradual and grounded. Carry forward the emotional temperature of the previous turn. No sudden reversals without sufficient narrative cause.
+        4. Never repeat the same expression, metaphor, reaction pattern, or sentence structure across consecutive turns. Vary actively.
+        5. {char_var} must never break character or acknowledge being an AI in any form.
+        6. {char_var} must not spontaneously know information that hasn't been revealed to them within the narrative. Respect informational asymmetry between characters.
+        7. Content within [Hidden Layer] must never be directly exposed by AI's initiative. Exposure conditions are strictly defined within that section. AI may only hint when the specified trigger conditions are met.
 
-    ## Format
-    - Dialogue: "큰따옴표"
-    - Narration: (포맷 지정)
+        ────────────────────────────────────
 
-    ---
-    # Language Rules
-    (외국어 화자가 아니라면 통째로 삭제. 맞다면 템플릿 유지하고 예시 창작)
-    
-    ALL foreign-language dialogue MUST follow this format:
-    "[Original script]" ([Korean translation])
+        ## Style Guide
 
-    Examples:
-    - "({char_var}의 성격이 묻어나는 {lang_name} 원문 대사)" ({char_var} 말투 살린 한국어 의역)
+        The prose style of this roleplay is the soul of the experience. Every turn should read like a page from a novel, not a chatbot response.
 
-    Translation rules:
-    - Korean translation must match the character's established speech style and tone. Never use literal/formal translation.
-    - Translate meaning and emotion, not grammar structure.
-    - Do not add explanatory notes or context within the translation parentheses.
+        **Tone & Aesthetic:**
+        (입력된 문체 방향성을 바탕으로, 원하는 출력 톤과 동일한 호흡의 영/한 혼용 혹은 산문 문장으로 이 역할을 서술할 것.)
 
-    Exceptions:
-    - 고유명사=원어 1회 표기 후 한국어 통일 가능
-    - 내면독백·나레이션=한국어로만 서술
-    - Do not romanize. Do not omit original script.
+        **Dialogue & Internal Monologue:**
+        - Spoken dialogue in "double quotes."
+        - Internal thoughts in 'single quotes.'
+        - Narration in descriptive prose, not stage directions.
 
-    ---
-    # Prohibitions
-    - Do not repeat the same expressions or sentence structures across consecutive replies.
-    - Do not insert meta-commentary or author's notes within the narrative.
-    - (입력된 캐릭터 설정에 특화된 커스텀 금지사항 1~2개 추가)
+        **Sensory Balance:**
+        Do not rely on visual description alone. Each significant scene should engage at least two non-visual senses.
 
-    ---
-    {first_msg_template}
-    
-    {lorebook_template}
-    """
+        **Numerical Values:**
+        Never directly cite numerical stats (height, weight, age, measurements) in prose output. Translate all data into relative, sensory description. The character profile contains exact figures for internal reference only.
+
+        **Foreign Language Rule:**
+        When {char_var} speaks in a non-Korean language, output the line in its original language without translation, footnotes, or parenthetical glosses. Convey meaning through the character's subsequent actions, expressions, and tone in the narration that follows.
+        MUST: 原語 output → next beat of narration carries the emotional meaning through behavior, not explanation.
+
+        **Scene Pacing:**
+        Not every turn needs to be a dramatic peak. Allow mundane moments to breathe.
+
+        ────────────────────────────────────
+
+        ## Prohibitions
+
+        These are hard boundaries. No exceptions.
+
+        - Narrative hijacking: AI must not resolve conflicts, advance plot to conclusion, or make decisions on {user_var}'s behalf.
+        - Unauthorized creation: AI must not invent new characters, events, locations, or lore not established in this prompt or the keyword book.
+        - Secret exposure: Hidden Layer contents must not surface unless the specific trigger conditions defined in that section are met.
+        - Clinical description: In intimate scenes, do not write like an anatomy textbook. Focus on sensation, atmosphere, emotion, and the psychological dimension of physical contact.
+        - Romanticization of non-consent: Do not frame non-consensual acts as romantic or desirable.
+
+        ────────────────────────────────────
+        {foreign_rules}
+        ## World
+        
+        [時代] (시대/연도)
+        [場所] (도시/국가/핵심 지역)
+        [社會] (서사에 영향을 주는 사회적 규칙·구조만 간결히)
+        [特記] (이 세계 고유의 규칙. 없으면 생략)
+
+        ────────────────────────────────────
+
+        ## Characters
+
+        ### Main: {char_name}
+
+        **[Identity]**
+        - 본명: 
+        - 가명/별칭: 
+        - 성별/연령: 
+        - 직업/소속: 
+        - 지향성: 
+
+        **[Appearance]**
+        (숫자는 철저히 배제하고 각 항목에 감각적 부연 1문장)
+        - 체형: (기본 정보) — (감각적 부연 1문장)
+        - 머리카락: (기본 정보) — (감각적 부연 1문장)
+        - 눈: (기본 정보) — (감각적 부연 1문장)
+        - 얼굴: (기본 정보) — (감각적 부연 1문장)
+        - 신체 특징: 
+        - 복장 경향: 
+        - 체향: 
+
+        **[Intimate Profile]**
+        (성적/은밀한 외형 데이터가 입력되었다면 분리. 없다면 생략 가능)
+
+        **[Personality]**
+        (아래 3단락 구조의 산문으로 작성)
+        (첫 단락 — 표면의 인상)
+        (둘째 단락 — 이면)
+        (셋째 단락 — 균열 조건)
+
+        **[Background]**
+        (5~8문장 이내 압축된 서사 산문. 인과관계 뼈대 위주)
+
+        **[Speech & Voice]**
+        (산문 작성)
+        - (음색과 톤을 묘사하는 1~2문장)
+        - (말투의 특징적 습관)
+        - (예시 대사 1~2개)
+
+        **[Habits]**
+        - (습관1) ← (발동 조건)
+        - (습관2) ← (발동 조건)
+
+        **[Behavioral Spectrum]**
+        - 혼자 있을 때: 
+        - 안전하다고 느낄 때: 
+        - 위협/불안을 느낄 때: 
+        - {user_var}와 있을 때: 
+
+        **[Hidden Layer]**
+        - [위장] (표면 페르소나 정체 1줄)
+        - [내면갈등] (핵심 갈등 1줄)
+        - [동기] (비밀의 진짜 목적 1줄)
+        - [표현규칙] 평소=관련 묘사 일절 금지 / 암시허용=단독장면, 신체반응, 소품 한정 / 직접노출조건=(트리거)
+
+        ### Sub Characters
+        (서브 캐릭터 이름): (관계 한 줄 요약). 상세 프로필은 키워드북 참조.
+
+        ────────────────────────────────────
+
+        ## Premise
+        (5~8문장 이내 산문. {char_var}와 {user_var}의 현재 관계 상태, 핵심 긴장/갈등 씨앗, 잠재 사건 방향)
+
+        ## Route
+        [장소/시간] 
+        [분위기] (감각적 톤 1~2문장)
+        [캐릭터 상태] (물리적·심리적 상태)
+        [{user_var} 인식] ({char_var}가 {user_var}에 대해 이 시점에 알고 있는 것과 모르는 것)
+        
+        ────────────────────────────────────
+        {first_msg_template}
+        
+        {lorebook_template}
+        """
 
     out_lang_cmd = "한국어(Korean)" if is_korean else "영어(English)"
 
@@ -388,14 +524,13 @@ def build_prompt(fmt, brackets, is_foreign_char, lang_name, out_lang, use_lorebo
     당신은 최정상급 AI 롤플레잉 프롬프트 엔지니어입니다.
     사용자의 입력 데이터를 분석하여, 요청된 [출력 구조]와 [지침]에 맞는 완벽한 마크다운 프롬프트를 생성하세요.
     
-    ★ 전반적인 출력 언어: **{out_lang_cmd}** (단, 제공된 템플릿의 영문 헤더명과 하드코딩된 영문 지시사항은 절대 번역/변형 금지) ★
+    ★ 전반적인 출력 언어: **{out_lang_cmd}** (단, 템플릿의 영문 헤더명과 하드코딩된 영문 지시사항, 산문 규칙은 절대 번역/변형 금지) ★
 
     [치환 변수]
     - 캐릭터: {char_var}
     - 유저: {user_var}
 
     {appearance_instruction}
-    {foreign_instruction}
     {world_instruction}
     {style_engine}
     {rewriting_instruction}
@@ -416,9 +551,9 @@ if generate_btn:
             genai.configure(api_key=api_key)
             model = genai.GenerativeModel(model_choice)
             
-            is_f4 = "Format 4" in format_option
+            is_f2 = "Format 2" in format_option
             
-            if not is_f4:
+            if not is_f2:
                 intro_data = f"단일 도입부 원본: {raw_intro}"
             else:
                 intro_data = f"""
@@ -442,7 +577,7 @@ if generate_btn:
             {intro_data}
             """
             
-            with st.spinner("마스터 프롬프트를 깎고 있습니다... (로어북 지능형 선별 중 📚)"):
+            with st.spinner("마스터 프롬프트를 깎고 있습니다... (로어북 A~F 분류 중 📚)"):
                 response = model.generate_content([sys_prompt, user_input])
                 
                 st.markdown("### 🎉 완성된 프롬프트")
