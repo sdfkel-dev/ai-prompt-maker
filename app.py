@@ -4,10 +4,10 @@ import streamlit.components.v1 as components
 import base64
 
 # 페이지 설정
-st.set_page_config(layout="wide", page_title="AI 캐릭터 프롬프트 마스터 v8.0")
+st.set_page_config(layout="wide", page_title="AI 캐릭터 프롬프트 마스터 v8.1")
 
-st.title("🤖 AI 캐릭터 프롬프트 마스터 v8.0")
-st.markdown("F1~F3 마스터 템플릿 | 숫자 통제 | **지능형 로어북(A~F 슬롯) 자동 분류 엔진**")
+st.title("🤖 AI 캐릭터 프롬프트 마스터 v8.1")
+st.markdown("F1~F3 마스터 템플릿 | 숫자 통제 | **지능형 로어북(단어 트리거) 자동 분류 엔진**")
 
 # --- [사이드바] 설정 영역 ---
 with st.sidebar:
@@ -148,6 +148,7 @@ def build_prompt(fmt, brackets, is_foreign_char, lang_name, out_lang, use_lorebo
         [로어북(Keyword Book) 지능형 분리 지침]
         메인 프롬프트에 불필요한 무거운 정보(서브 NPC, 특정 장소, 과거 사건, 확장 비밀, 성적 상세 설정 등)를 선별해 `# 📚 KEYWORD BOOK` 섹션으로 분리하십시오. 본문에는 요약만 남기십시오. 
         선별된 데이터는 제공된 A~F 분류 체계 템플릿에 맞추어 작성하십시오.
+        ★주의: 각 슬롯의 [트리거] 항목에는 설명문이나 문장을 쓰지 마십시오. 오직 해당 슬롯을 발동시킬 '키워드(단어)'들만 콤마로 구분하여 나열하십시오. (예: 트리거=쿠로다, 마사요시, 오야붕, 크로스필드)
         """
         lorebook_template = f"""
         ---
@@ -170,7 +171,7 @@ def build_prompt(fmt, brackets, is_foreign_char, lang_name, out_lang, use_lorebo
         A. 인물 슬롯 (서브 캐릭터)
         ───────────────────────────────────
         [슬롯명] (캐릭터명)
-        [트리거] 해당 캐릭터의 이름이 언급되거나, 관련 장소/사건이 활성화될 때.
+        [트리거] (캐릭터 이름, 별명, 직함, 관련 소속 등 연관 단어 콤마 구분 기재)
 
         **Identity**
         - 본명:
@@ -201,7 +202,7 @@ def build_prompt(fmt, brackets, is_foreign_char, lang_name, out_lang, use_lorebo
         B. 장소 슬롯
         ───────────────────────────────────
         [슬롯명] (장소명)
-        [트리거] 해당 장소에 캐릭터가 진입하거나, 장소명이 언급될 때.
+        [트리거] (장소명, 특정 방 이름, 관련 지역명 등 연관 단어 콤마 구분 기재)
 
         **Overview**
         (산문 2~3문장. 첫인상과 분위기. 문체 앵커)
@@ -226,7 +227,7 @@ def build_prompt(fmt, brackets, is_foreign_char, lang_name, out_lang, use_lorebo
         C. 사건 슬롯 (과거 에피소드)
         ───────────────────────────────────
         [슬롯명] (사건명)
-        [트리거] 특정 키워드, 감정 상태, 또는 관련 인물 등장 시.
+        [트리거] (사건명, 관련 인물, 날짜, 암시 단어 등 연관 단어 콤마 구분 기재)
 
         **Event Summary**
         (산문 3~5문장. 감정적 인과 중심)
@@ -245,7 +246,7 @@ def build_prompt(fmt, brackets, is_foreign_char, lang_name, out_lang, use_lorebo
         D. 비밀 슬롯 (Hidden Layer 확장)
         ───────────────────────────────────
         [슬롯명] (비밀 코드명)
-        [트리거] 본문 Hidden Layer에 명시된 노출 조건과 동일하게 기재.
+        [트리거] (비밀을 암시하는 핵심 명사, 소품, 관련 키워드 등 콤마 구분 기재)
 
         **Secret Content**
         (산문 상세 기술)
@@ -262,10 +263,10 @@ def build_prompt(fmt, brackets, is_foreign_char, lang_name, out_lang, use_lorebo
         E. 시스템 슬롯 (명령어 / 유틸리티)
         ───────────────────────────────────
         [슬롯명] (명령어명)
-        [트리거] {user_var}가 해당 명령어를 입력할 때.
+        [트리거] (명령어 기호 포함하여 단어 기재. 예: !요약, !전화)
 
         **Command**
-        명령어: (예: !요약 / !폰)
+        명령어: 
 
         **Function**
         (해당 명령어 실행 시 출력할 내용)
@@ -280,7 +281,7 @@ def build_prompt(fmt, brackets, is_foreign_char, lang_name, out_lang, use_lorebo
         F. 친밀 슬롯
         ───────────────────────────────────
         [슬롯명] (슬롯 코드명)
-        [트리거] 물리적 친밀 장면 진입 시.
+        [트리거] (침대, 스킨십, 키스, 애무 등 친밀 장면을 암시하는 단어 콤마 구분 기재)
 
         **Intimate Detail**
         (감각 중심 서술. 해부학적 나열 금지)
@@ -577,7 +578,7 @@ if generate_btn:
             {intro_data}
             """
             
-            with st.spinner("마스터 프롬프트를 깎고 있습니다... (로어북 A~F 분류 중 📚)"):
+            with st.spinner("마스터 프롬프트를 깎고 있습니다... (로어북 A~F 단어 트리거 적용 중 📚)"):
                 response = model.generate_content([sys_prompt, user_input])
                 
                 st.markdown("### 🎉 완성된 프롬프트")
