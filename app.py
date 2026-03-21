@@ -4,10 +4,10 @@ import streamlit.components.v1 as components
 import base64
 
 # 페이지 설정
-st.set_page_config(layout="wide", page_title="AI 캐릭터 프롬프트 마스터 v8.1")
+st.set_page_config(layout="wide", page_title="AI 캐릭터 프롬프트 마스터 v8.2")
 
-st.title("🤖 AI 캐릭터 프롬프트 마스터 v8.1")
-st.markdown("F1~F3 마스터 템플릿 | 숫자 통제 | **지능형 로어북(단어 트리거) 자동 분류 엔진**")
+st.title("🤖 AI 캐릭터 프롬프트 마스터 v8.2")
+st.markdown("F1~F3 마스터 템플릿 | 숫자 통제 | 지능형 로어북 엔진 | **Intimate Profile 본문 고정**")
 
 # --- [사이드바] 설정 영역 ---
 with st.sidebar:
@@ -146,9 +146,9 @@ def build_prompt(fmt, brackets, is_foreign_char, lang_name, out_lang, use_lorebo
     if use_lorebook:
         lorebook_instruction = """
         [로어북(Keyword Book) 지능형 분리 지침]
-        메인 프롬프트에 불필요한 무거운 정보(서브 NPC, 특정 장소, 과거 사건, 확장 비밀, 성적 상세 설정 등)를 선별해 `# 📚 KEYWORD BOOK` 섹션으로 분리하십시오. 본문에는 요약만 남기십시오. 
-        선별된 데이터는 제공된 A~F 분류 체계 템플릿에 맞추어 작성하십시오.
-        ★주의: 각 슬롯의 [트리거] 항목에는 설명문이나 문장을 쓰지 마십시오. 오직 해당 슬롯을 발동시킬 '키워드(단어)'들만 콤마로 구분하여 나열하십시오. (예: 트리거=쿠로다, 마사요시, 오야붕, 크로스필드)
+        메인 프롬프트에 불필요한 무거운 정보(서브 NPC, 특정 장소, 과거 사건, 확장 비밀, 친밀 뉘앙스 등)를 선별해 `# 📚 KEYWORD BOOK` 섹션으로 분리하십시오.
+        ★주의사항★: 캐릭터의 성적/은밀한 외형 데이터인 [Intimate Profile]은 절대 로어북으로 빼지 말고, 반드시 메인 프롬프트의 Characters 섹션 안에 그대로 유지하십시오. 로어북의 'F. 친밀 슬롯'에는 외형 데이터가 아닌 '행위 패턴이나 반응' 등만 기재하십시오.
+        ★주의사항★: 각 슬롯의 [트리거] 항목에는 설명문이나 문장을 쓰지 마십시오. 오직 해당 슬롯을 발동시킬 '키워드(단어)'들만 콤마로 구분하여 나열하십시오.
         """
         lorebook_template = f"""
         ---
@@ -164,7 +164,7 @@ def build_prompt(fmt, brackets, is_foreign_char, lang_name, out_lang, use_lorebo
         C. 사건 슬롯 — 과거 에피소드 / 트라우마
         D. 비밀 슬롯 — Hidden Layer 확장 정보
         E. 시스템 슬롯 — 명령어 / HUD / 유틸리티
-        F. 친밀 슬롯 — 성적 외형·행위 상세
+        F. 친밀 슬롯 — 친밀 행위 및 고유 반응 상세 (외형 제외)
         ═══════════════════════════════════
 
         ───────────────────────────────────
@@ -414,10 +414,6 @@ def build_prompt(fmt, brackets, is_foreign_char, lang_name, out_lang, use_lorebo
         **Numerical Values:**
         Never directly cite numerical stats (height, weight, age, measurements) in prose output. Translate all data into relative, sensory description. The character profile contains exact figures for internal reference only.
 
-        **Foreign Language Rule:**
-        When {char_var} speaks in a non-Korean language, output the line in its original language without translation, footnotes, or parenthetical glosses. Convey meaning through the character's subsequent actions, expressions, and tone in the narration that follows.
-        MUST: 原語 output → next beat of narration carries the emotional meaning through behavior, not explanation.
-
         **Scene Pacing:**
         Not every turn needs to be a dramatic peak. Allow mundane moments to breathe.
 
@@ -466,7 +462,7 @@ def build_prompt(fmt, brackets, is_foreign_char, lang_name, out_lang, use_lorebo
         - 체향: 
 
         **[Intimate Profile]**
-        (성적/은밀한 외형 데이터가 입력되었다면 분리. 없다면 생략 가능)
+        (성적/은밀한 외형 데이터가 입력되었다면 본문 이곳에 기재. 없다면 생략 가능. 절대 로어북으로 빼지 말 것)
 
         **[Personality]**
         (아래 3단락 구조의 산문으로 작성)
@@ -578,7 +574,7 @@ if generate_btn:
             {intro_data}
             """
             
-            with st.spinner("마스터 프롬프트를 깎고 있습니다... (로어북 A~F 단어 트리거 적용 중 📚)"):
+            with st.spinner("마스터 프롬프트를 깎고 있습니다... (세부 지침 적용 중 ⚙️)"):
                 response = model.generate_content([sys_prompt, user_input])
                 
                 st.markdown("### 🎉 완성된 프롬프트")
